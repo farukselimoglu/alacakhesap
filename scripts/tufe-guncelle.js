@@ -24,6 +24,8 @@ const BASE = (process.env.EVDS_BASE || 'https://evds3.tcmb.gov.tr/igmevdsms-dis'
 const KEY = process.env.EVDS_API_KEY;
 const ESKI = process.env.EVDS_ESKI_SERIES || 'TP.FG.J0';
 const YENI_VARSAYILAN = 'TP.TUKFIY2025.GENEL';
+// TÜİK 2025=100 serisiyle resmi yayına Ocak 2026'da geçti; öncesi eski seriden yayımlandı.
+const RESMI_YENI_BAZ_YILI = 2026;
 
 const kucuk = s => String(s || '').toLocaleLowerCase('tr');
 const metin = o => Object.values(o || {}).filter(v => typeof v === 'string').join(' ');
@@ -110,8 +112,7 @@ async function main() {
 
   // Doğrulama yalnızca yeni bazlı serinin tek başına geçerli olduğu yıllarda yapılır.
   // Yeni serinin ilk yılında (2025) resmi oranlar eski seriden hesaplandığı için küçük farklar beklenir.
-  const yeniIlkYil = +Object.keys(yeni).sort()[0].slice(0, 4);
-  const sinirYil = Math.max(yeniIlkYil + 1, new Date().getFullYear() - 1);
+  const sinirYil = Math.max(RESMI_YENI_BAZ_YILI, new Date().getFullYear() - 1);
   const yakinFark = farklar.filter(f => +f.ay.slice(0, 4) >= sinirYil);
   const yakinKontrol = kontrolEdilen.filter(f => +f.ay.slice(0, 4) >= sinirYil);
 
