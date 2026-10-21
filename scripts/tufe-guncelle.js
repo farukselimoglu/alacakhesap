@@ -6,7 +6,7 @@
  *   EVDS_API_KEY       (zorunlu) EVDS API anahtarı — GitHub secret
  *   EVDS_TUFE_SERIES   TÜFE 2025=100 Genel endeks seri kodu. Boşsa EVDS'te aranır.
  *   EVDS_ESKI_SERIES   TÜFE 2003=100 Genel endeks seri kodu (varsayılan TP.FG.J0)
- *   EVDS_BASE          EVDS servis adresi (varsayılan https://evds2.tcmb.gov.tr/service/evds)
+ *   EVDS_BASE          EVDS servis adresi (varsayılan https://evds3.tcmb.gov.tr/igmevdsms-dis)
  *
  * Çıktılar: veri/tufe.js (güncellenmiş), tufe-rapor.md (PR açıklaması),
  *           GITHUB_OUTPUT: degisti=true|false, durum=tamam|kontrol
@@ -19,7 +19,7 @@ const H = require('../lib/tufe-hesap');
 const KOK = path.join(__dirname, '..');
 const TABLO = process.env.TUFE_TABLO || path.join(KOK, 'veri', 'tufe.js');
 const RAPOR = process.env.TUFE_RAPOR || path.join(KOK, 'tufe-rapor.md');
-const BASE = (process.env.EVDS_BASE || 'https://evds2.tcmb.gov.tr/service/evds').replace(/\/$/, '');
+const BASE = (process.env.EVDS_BASE || 'https://evds3.tcmb.gov.tr/igmevdsms-dis').replace(/\/$/, '');
 const KEY = process.env.EVDS_API_KEY;
 const ESKI = process.env.EVDS_ESKI_SERIES || 'TP.FG.J0';
 
