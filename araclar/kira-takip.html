@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kira Takip & Alacak Hesaplama</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="../lib/faiz.js"></script>
+<style>
+:root{
+  --bg:#f7f6f2;--surface:#fff;--s2:#f0ede8;--border:#e2ddd6;--bd2:#ccc8c0;
+  --text:#1a1916;--t2:#6b6760;--t3:#999590;
+  --green:#0f6e56;--gl:#e1f5ee;--gb:#9fe1cb;
+  --red:#a32d2d;--rl:#fcebeb;--rb:#f7c1c1;
+  --amber:#854f0b;--al:#faeeda;--ab:#fac775;
+  --blue:#185fa5;--bl:#e6f1fb;
+  --r:10px;--rs:6px;
+  font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);min-height:100vh}
+.shell{display:flex;min-height:100vh}
+.sidebar{width:240px;background:var(--surface);border-right:1px solid var(--border);padding:20px 0;flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto}
+.main{flex:1;padding:28px 36px;max-width:1160px}
+.logo{padding:0 18px 16px;border-bottom:1px solid var(--border);margin-bottom:10px}
+.logo h1{font-size:15px;font-weight:600}.logo p{font-size:11px;color:var(--t3);margin-top:2px}
+.ns{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--t3);padding:12px 18px 4px}
+.ni{display:flex;align-items:center;gap:7px;padding:9px 18px;font-size:13px;color:var(--t2);cursor:pointer;border-left:3px solid transparent;transition:all .15s;user-select:none}
+.ni:hover{background:var(--s2);color:var(--text)}.ni.active{background:var(--gl);color:var(--green);border-left-color:var(--green);font-weight:500}
+.page{display:none}.page.active{display:block}
+.pt{font-size:21px;font-weight:600;margin-bottom:3px}.ps{font-size:13px;color:var(--t2);margin-bottom:20px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;margin-bottom:14px}
+.card h3{font-size:13px;font-weight:600;margin-bottom:12px}
+.fg{display:grid;gap:11px}.fg2{grid-template-columns:1fr 1fr}.fg3{grid-template-columns:1fr 1fr 1fr}.fg4{grid-template-columns:1fr 1fr 1fr 1fr}
+.f label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--t3);margin-bottom:4px}
+.f input,.f select,.f textarea{width:100%;padding:7px 9px;border:1px solid var(--border);border-radius:var(--rs);font-size:13px;background:var(--surface);color:var(--text);outline:none;transition:border .15s}
+.f input:focus,.f select:focus{border-color:var(--green);box-shadow:0 0 0 2px rgba(15,110,86,.1)}
+.f small{font-size:11px;color:var(--t3);margin-top:2px;display:block}
+.btn{padding:7px 14px;border-radius:var(--rs);font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--bd2);background:var(--surface);color:var(--text);transition:all .15s;white-space:nowrap}
+.btn:hover{background:var(--s2)}.btn.p{background:var(--green);color:#fff;border-color:var(--green)}.btn.p:hover{background:#0a5240}
+.btn.excel{background:#1d6f42;color:#fff;border-color:#1d6f42}.btn.excel:hover{background:#155232}
+.brow{display:flex;gap:8px;margin-top:12px;align-items:center;flex-wrap:wrap}
+.nxt{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:var(--rs);font-size:14px;font-weight:600;cursor:pointer;border:2px solid var(--green);background:var(--green);color:#fff;transition:all .15s;margin-top:16px}
+.nxt:hover{background:#0a5240;border-color:#0a5240}.nxt .arr{transition:transform .15s}.nxt:hover .arr{transform:translateX(3px)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--t3);padding:7px 9px;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:7px 9px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr.TR{background:var(--s2);font-weight:600;border-top:2px solid var(--bd2)}
+.tn{text-align:right;font-variant-numeric:tabular-nums}
+.b{display:inline-flex;align-items:center;font-size:11px;font-weight:500;padding:2px 8px;border-radius:99px}
+.b.g{background:var(--gl);color:var(--green)}.b.r{background:var(--rl);color:var(--red)}.b.a{background:var(--al);color:var(--amber)}.b.bl{background:var(--bl);color:var(--blue)}
+.db{background:none;border:none;cursor:pointer;color:var(--t3);font-size:14px;padding:2px 5px;border-radius:4px}
+.db:hover{background:var(--rl);color:var(--red)}
+.alt{border-radius:var(--rs);padding:11px 15px;font-size:13px;margin-bottom:12px}
+.alt.g{background:var(--gl);border:1px solid var(--gb);color:var(--green)}
+.alt.a{background:var(--al);border:1px solid var(--ab);color:var(--amber)}
+.alt.r{background:var(--rl);border:1px solid var(--rb);color:var(--red)}
+.mg{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:14px}
+.m{background:var(--s2);border-radius:var(--rs);padding:13px 15px}
+.m .ml{font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.m .mv{font-size:18px;font-weight:600}.m .mh{font-size:11px;color:var(--t3);margin-top:2px}
+.m.r .mv{color:var(--red)}.m.a .mv{color:var(--amber)}.m.g .mv{color:var(--green)}
+.ei{width:100%;padding:4px 7px;border:1px solid var(--border);border-radius:4px;font-size:13px;background:var(--surface);color:var(--text);outline:none}
+.ei:focus{border-color:var(--green);box-shadow:0 0 0 2px rgba(15,110,86,.08)}
+.ei.ch{border-color:var(--amber);background:#fffcf0}
+.rch td{background:#fffdf5}
+.rst{background:none;border:1px solid var(--border);border-radius:4px;cursor:pointer;color:var(--t3);font-size:11px;padding:2px 6px;white-space:nowrap;transition:all .15s;margin-left:2px}
+.rst:hover{border-color:var(--amber);color:var(--amber);background:var(--al)}
+.rst.tam:hover{border-color:var(--green);color:var(--green);background:var(--gl)}
+.dz{border:2px dashed var(--bd2);border-radius:var(--r);padding:26px;text-align:center;cursor:pointer;transition:all .2s;background:var(--s2)}
+.dz:hover,.dz.ov{border-color:var(--green);background:var(--gl)}
+.dz .di{font-size:28px;margin-bottom:6px}.dz p{font-size:13px;color:var(--t2)}.dz small{font-size:11px;color:var(--t3)}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:14px}
+.tb{padding:8px 14px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--t2);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+.tb.ac{color:var(--green);border-bottom-color:var(--green)}.tb:hover{color:var(--text)}
+.tp{display:none}.tp.ac{display:block}
+.endeks-sec{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px}
+.endeks-opt{display:flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--border);border-radius:var(--rs);cursor:pointer;font-size:13px;transition:all .15s;background:var(--surface)}
+.endeks-opt:hover{border-color:var(--green);background:var(--gl)}
+.endeks-opt.active{border-color:var(--green);background:var(--gl);color:var(--green);font-weight:500}
+.endeks-opt input{display:none}
+.endeks-badge{font-size:10px;padding:1px 6px;border-radius:99px;background:var(--green);color:#fff;font-weight:600}
+.yasal{background:#fff8f0;border:1px solid #f5c842;border-radius:var(--rs);padding:12px 16px;font-size:12px;color:#5a4000;margin-bottom:16px;line-height:1.6}
+.yasal strong{color:#854f0b}
+@media(max-width:780px){
+  .shell{flex-direction:column}.sidebar{width:100%;height:auto;position:static;display:flex;flex-wrap:wrap;padding:8px;gap:2px}
+  .ns{display:none}.logo{padding:8px}.main{padding:14px}
+  .mg{grid-template-columns:1fr 1fr}.fg3,.fg4{grid-template-columns:1fr 1fr}.fg2{grid-template-columns:1fr}
+}
+@media print{
+  .sidebar,.brow,.nxt,.db,.rst,.tabs,.tb,.dz,.yasal-print-hide{display:none!important}
+  .main{padding:0;max-width:100%}
+  body{background:#fff}
+  .ei{border:none!important;background:transparent!important;padding:0}
+  .page{display:block!important}
+  .page:not(.active){display:none!important}
+  .card{break-inside:avoid;border:1px solid #ddd;margin-bottom:10px}
+  .pdf-header{display:flex!important}
+}
+.pdf-header{display:none;align-items:center;justify-content:space-between;padding:0 0 16px;margin-bottom:16px;border-bottom:3px solid var(--green)}
+.pdf-logo{font-size:22px;font-weight:700;color:var(--green)}
+.pdf-logo span{font-size:12px;font-weight:400;color:var(--t2);display:block;margin-top:2px}
+.pdf-meta{text-align:right;font-size:12px;color:var(--t2)}
+.pdf-meta strong{font-size:14px;color:var(--text);display:block}
+</style>
+</head>
+<body>
+<div class="shell">
+<nav class="sidebar">
+  <div class="logo"><h1>🏠 Kira Takip</h1><p>Alacak &amp; Faiz Hesaplama</p></div>
+  <div class="ns">Adımlar</div>
+  <div class="ni active" data-page="giris" onclick="goto(this)">1 · Sözleşme Bilgileri</div>
+  <div class="ni" data-page="odemeler" onclick="goto(this)">2 · Ödeme Girişi</div>
+  <div class="ni" data-page="hesap" onclick="goto(this)">3 · Alacak Hesabı</div>
+  <div class="ns">Referans</div>
+  <div class="ni" data-page="tufe" onclick="goto(this)">📊 TÜİK Verileri</div>
+</nav>
+
+<main class="main">
+
+<div class="pdf-header" id="pdf-header">
+  <div class="pdf-logo">⚖️ Kira Alacak Raporu<span>Kira Takip &amp; Faiz Hesaplama Sistemi</span></div>
+  <div class="pdf-meta"><strong id="pdf-kiraci-ad">—</strong><span id="pdf-tarih-info">—</span></div>
+</div>
+
+<div class="yasal">
+  ⚠️ <strong>Yasal Sorumluluk Reddi:</strong> Bu uygulama yalnızca bilgilendirme ve ön hesaplama amaçlıdır. Hesaplama sonuçları kesin hukuki belge niteliği taşımaz. Gerçek kira alacağı, gecikme faizi ve yasal artış oranlarının belirlenmesinde mutlaka bir avukattan veya noter/mahkeme kanalıyla resmi hukuki destek alınız. TÜİK verileri otomatik olarak yüklenmiş olmakla birlikte güncelliği konusunda sorumluluk kabul edilmez. <strong>Alacaklar 5 yıllık zamanaşımına tabidir.</strong>
+</div>
+
+<div id="page-giris" class="page active">
+  <div class="pt">Sözleşme Bilgileri</div>
+  <div class="ps">Kira dönemi ve artış oranları TÜİK verilerinden otomatik hesaplanır. Aşağıdan endeks türünü seçin.</div>
+
+  <div class="card">
+    <h3>Artış Hesabında Kullanılacak TÜİK Endeksi</h3>
+    <div class="endeks-sec" id="endeks-sec">
+      <label class="endeks-opt active" data-key="onikimort">
+        <input type="radio" name="endeks" value="onikimort" checked>
+        On İki Aylık Ortalama <span class="endeks-badge">TBK Varsayılan</span>
+      </label>
+      <label class="endeks-opt" data-key="yillik">
+        <input type="radio" name="endeks" value="yillik">
+        Yıllık Değişim (Bir Önceki Yılın Aynı Ayı)
+      </label>
+      <label class="endeks-opt" data-key="aylik">
+        <input type="radio" name="endeks" value="aylik">
+        Aylık Değişim
+      </label>
+      <label class="endeks-opt" data-key="aralik">
+        <input type="radio" name="endeks" value="aralik">
+        Aralık Ayına Göre Değişim
+      </label>
+    </div>
+    <small style="color:var(--t3);font-size:11px;margin-top:6px;display:block">
+      Türk Borçlar Kanunu md. 344 gereği konutlarda "on iki aylık ortalamalara göre değişim" esas alınır. 11.06.2022–01.07.2024 arasında yenilenen konut kira dönemlerinde artış en fazla %25 olabilir (7409 s. Kanun).
+    </small>
+  </div>
+
+  <div class="card">
+    <h3>Kiracı ve Sözleşme Bilgileri</h3>
+    <div class="fg fg3">
+      <div class="f"><label>Kiracı Adı Soyadı</label><input type="text" id="kiraci" placeholder="Ad Soyad"></div>
+      <div class="f"><label>Kira Başlangıç Tarihi</label><input type="date" id="baslangic"><small>Sözleşmenin başladığı ay</small></div>
+      <div class="f"><label>Başlangıç Kira Bedeli (₺)</label><input type="number" id="baslangicKira" step="0.01" placeholder="0,00"></div>
+      <div class="f"><label>Kira Ödeme Günü</label><input type="number" id="odemeGunu" min="1" max="28" value="1"><small>Her ayın kaçında muaccel olur</small></div>
+      <div class="f"><label>Mülk Türü</label><select id="mulkTuru"><option value="konut">Konut</option><option value="isyeri">İş Yeri</option></select></div>
+      <div class="f"><label>Takip / Hesap Tarihi</label><input type="date" id="takipTarihi"><small>Yasal faiz bu tarihe kadar hesaplanır</small></div>
+    </div>
+    <div class="brow">
+      <button class="btn p" onclick="sozlesmeyiKaydet()">Kaydet ve Dönemleri Oluştur</button>
+      <button class="btn" onclick="ornekYukle()">Örnek Veri (Örnek Kişi)</button>
+    </div>
+  </div>
+
+  <div class="card" id="donem-card" style="display:none">
+    <h3 id="donem-card-baslik">Kira Dönemleri — TÜİK Verisine Göre Artışlar</h3>
+    <div style="overflow-x:auto"><table>
+      <thead><tr>
+        <th>Dönem</th><th>Başlangıç Tarihi</th><th>Artış Türü</th>
+        <th class="tn">TÜİK Oranı (%)</th><th class="tn">Uygulanan (%)</th><th class="tn">Aylık Kira (₺)</th><th></th>
+      </tr></thead>
+      <tbody id="donem-tbody"></tbody>
+    </table></div>
+    <p style="font-size:11px;color:var(--t3);margin-top:9px">* 11.06.2022–01.07.2024 arasında yenilenen konut dönemlerinde artış en fazla %25'tir. Artış ayından <em>önceki</em> ayın TÜİK verisi alınır. "Uygulanan (%)" sütunu elle düzeltilebilir.</p>
+    <button class="nxt" onclick="gotoById('odemeler')">2. Adım: Ödeme Girişi <span class="arr">→</span></button>
+  </div>
+</div>
+
+<div id="page-odemeler" class="page">
+  <div class="pt">Ödeme Girişi</div>
+  <div class="ps">Tüm aylar varsayılan olarak tam ödenmiş kabul edilir. Yalnızca farklı olanları düzeltin.</div>
+  <div id="od-uyari" class="alt a">Önce "1 · Sözleşme Bilgileri" adımını tamamlayın.</div>
+  <div id="od-icerik" style="display:none">
+    <div class="tabs">
+      <button class="tb ac" onclick="swTab('manuel',this)">✏️ Manuel Düzenleme</button>
+      <button class="tb" onclick="swTab('excel',this)">📂 Excel / CSV Yükle</button>
+    </div>
+
+    <div id="tp-manuel" class="tp ac">
+      <div class="alt g" style="margin-bottom:10px">
+        <strong>Nasıl çalışır:</strong> Her ay varsayılan olarak <em>tam ödenmiş</em>. Eksik/ödenmemiş aylarda tutarı değiştirin. <strong>↺ Tam</strong> = tam ödenmiş yap, <strong>✕ 0</strong> = sıfırla.
+      </div>
+      <div class="card" style="padding:0"><div style="overflow-x:auto"><table>
+        <thead><tr>
+          <th>Muacceliyet Tarihi</th>
+          <th class="tn">Ödenmesi Gereken (₺)</th>
+          <th class="tn">Ödenen (₺)</th>
+          <th></th>
+          <th class="tn">Kalan Alacak (₺)</th>
+          <th>Durum</th>
+        </tr></thead>
+        <tbody id="man-tbody"></tbody>
+        <tfoot><tr class="TR">
+          <td>TOPLAM</td>
+          <td class="tn" id="mt-g">—</td>
+          <td class="tn" id="mt-o">—</td>
+          <td></td>
+          <td class="tn" id="mt-k">—</td>
+          <td></td>
+        </tr></tfoot>
+      </table></div></div>
+      <div class="brow">
+        <button class="btn" onclick="hepsiTam()">✓ Tümünü Tam Ödenmiş Yap</button>
+        <button class="btn" onclick="hepsiSifir()">✕ Tümünü 0'a Çek</button>
+      </div>
+      <button class="nxt" onclick="gotoById('hesap')">3. Adım: Alacak Hesabını Gör <span class="arr">→</span></button>
+    </div>
+
+    <div id="tp-excel" class="tp">
+      <div class="card">
+        <h3>Dosya Yükle</h3>
+        <div class="dz" id="dz" onclick="document.getElementById('fi').click()" ondragover="dzOver(event)" ondragleave="dzLeave()" ondrop="dzDrop(event)">
+          <div class="di">📊</div>
+          <p>Dosyayı buraya sürükleyin veya tıklayın</p>
+          <small>.xlsx · .xls · .csv</small>
+        </div>
+        <input type="file" id="fi" accept=".xlsx,.xls,.csv" style="display:none" onchange="dosyaOku(this.files[0])">
+        <div id="cm-area" style="display:none;margin-top:14px">
+          <h3 style="margin-bottom:10px">Sütun Eşleştirme</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+            <div class="f"><label>Tarih Sütunu</label><select id="map-t" onchange="onizle()"></select></div>
+            <div class="f"><label>Ödenen Tutar Sütunu</label><select id="map-o" onchange="onizle()"></select></div>
+          </div>
+          <div id="prev" style="overflow-x:auto;margin-bottom:12px"></div>
+          <div class="brow">
+            <button class="btn p" onclick="excelUygula()">Bu Veriyi Uygula →</button>
+            <span id="ex-msg" style="font-size:12px;color:var(--green)"></span>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Beklenen Format</h3>
+        <table style="width:auto">
+          <thead><tr><th>Tarih</th><th>Ödenen</th><th style="color:var(--t3)">Açıklama (opsiyonel)</th></tr></thead>
+          <tbody>
+            <tr><td>01.01.2023</td><td class="tn">3400</td><td style="color:var(--t3)">Ocak kirası</td></tr>
+            <tr><td>2023-02-05</td><td class="tn">3100</td><td></td></tr>
+            <tr><td>01.03.2023</td><td class="tn">0</td><td style="color:var(--t3)">Ödenmedi</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:11px;color:var(--t3);margin-top:9px">Aynı aya ait birden fazla satır toplanır. Excel tarih serisi (sayı) de desteklenir.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="page-hesap" class="page">
+  <div class="pt">Alacak &amp; Faiz Hesabı</div>
+  <div class="ps">Kanuni faiz her gün o gün yürürlükteki oranla işletilir (bileşiksiz). Bir alacak birden fazla oran dönemine yayılıyorsa faiz dönemlere bölünerek hesaplanır.</div>
+  <div id="h-uyari" class="alt a">Önce sözleşme ve ödeme bilgilerini girin.</div>
+  <div id="h-icerik" style="display:none">
+    <div id="zamanasimi-uyari" class="alt a" style="display:none;margin-bottom:12px"></div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:12px;cursor:pointer">
+      <input type="checkbox" id="zamanasimiUygula" checked onchange="renderHesap()">
+      5 yıllık zamanaşımını uygula <span style="color:var(--t3);font-size:11px">(zamanaşımı bir def'idir; borçlu ileri sürmezse mahkeme kendiliğinden uygulamaz)</span>
+    </label>
+    
+    <div class="mg">
+      <div class="m r"><div class="ml">Anapara Alacağı</div><div class="mv" id="m-ana">—</div><div class="mh">Toplam kira farkları</div></div>
+      <div class="m a"><div class="ml">Faiz Alacağı</div><div class="mv" id="m-fai">—</div><div class="mh">Dönemsel kanuni faiz</div></div>
+      <div class="m r"><div class="ml">Toplam Alacak</div><div class="mv" id="m-top">—</div><div class="mh">Anapara + faiz</div></div>
+      <div class="m"><div class="ml">Takip Tarihi</div><div class="mv" id="m-tar" style="font-size:14px">—</div><div class="mh">Faiz bitiş tarihi</div></div>
+    </div>
+
+    <div class="card" id="ozet-box">
+      <h3>Sözleşme Özeti</h3>
+      <div class="fg fg3">
+        <div><div style="font-size:11px;color:var(--t3);margin-bottom:2px">KİRACİ</div><div style="font-weight:500" id="oz-kiraci">—</div></div>
+        <div><div style="font-size:11px;color:var(--t3);margin-bottom:2px">BAŞLANGIÇ TARİHİ</div><div style="font-weight:500" id="oz-bas">—</div></div>
+        <div><div style="font-size:11px;color:var(--t3);margin-bottom:2px">BAŞLANGIÇ KİRASI</div><div style="font-weight:500" id="oz-kira">—</div></div>
+        <div><div style="font-size:11px;color:var(--t3);margin-bottom:2px">MÜLK TÜRÜ</div><div style="font-weight:500" id="oz-tur">—</div></div>
+        <div><div style="font-size:11px;color:var(--t3);margin-bottom:2px">ENDEKs TÜRÜ</div><div style="font-weight:500" id="oz-endeks">—</div></div>
+        <div><div style="font-size:11px;color:var(--t3);margin-bottom:2px">TAKİP TARİHİ</div><div style="font-weight:500" id="oz-tak">—</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Aylık Kira Farkı ve Faiz Detayı</h3>
+      <div style="overflow-x:auto"><table>
+        <thead><tr>
+          <th>Muacceliyet Tarihi</th>
+          <th class="tn">Gereken (₺)</th>
+          <th class="tn">Ödenen (₺)</th>
+          <th class="tn">Kalan Alacak (₺)</th>
+          <th class="tn">Gün Farkı</th>
+          <th>Faiz Dönemleri (oran × gün)</th>
+          <th class="tn">Faiz (₺)</th>
+        </tr></thead>
+        <tbody id="fai-tbody"></tbody>
+        <tfoot><tr class="TR">
+          <td>TOPLAM</td>
+          <td class="tn" id="ft-g">—</td><td class="tn" id="ft-o">—</td>
+          <td class="tn" id="ft-k">—</td><td></td><td></td>
+          <td class="tn" id="ft-f">—</td>
+        </tr></tfoot>
+      </table></div>
+      <p style="font-size:11px;color:var(--t3);margin-top:9px">
+        Faiz = Σ (Kalan Alacak × Dönem Oranı × Dönemdeki Gün / 365) · Bileşiksiz · Faiz vade gününün ertesinden başlar, takip günü dahildir.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>Uygulanan Kanuni Faiz Dönemleri (3095 s. Kanun md.1)</h3>
+      <div style="overflow-x:auto"><table>
+        <thead><tr><th>Dönem</th><th class="tn">Yıllık Oran</th><th>Dayanak</th><th class="tn">Toplam Gün*</th><th class="tn">Faiz (₺)</th></tr></thead>
+        <tbody id="oran-tbody"></tbody>
+      </table></div>
+      <p style="font-size:11px;color:var(--t3);margin-top:9px">* Tüm alacak kalemlerinin o dönemde faiz işleyen günlerinin toplamı. 7589 s. Kanun sonrası oran her yıl TCMB reeskont oranına göre yeniden belirlenir; tablo <code>lib/faiz.js</code> içinden güncellenir.</p>
+    </div>
+
+    <div class="brow">
+      <button class="btn p" onclick="window.print()">🖨️ PDF Olarak Yazdır</button>
+      <button class="btn excel" onclick="excelExport()">⬇️ Excel İndir</button>
+    </div>
+    <p style="font-size:11px;color:var(--t3);margin-top:8px">PDF için tarayıcının yazdır penceresinde "Hedef: PDF'e Kaydet" seçin.</p>
+  </div>
+</div>
+
+<div id="page-tufe" class="page">
+  <div class="pt">TÜİK TÜFE Verileri</div>
+  <div class="ps">Tüm endeks türleri — TÜİK resmi Excel dosyasından alınmıştır.</div>
+
+  <div class="card">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+      <button class="btn ac-t" data-sec="onikimort" onclick="tufeGoster('onikimort',this)">On İki Aylık Ortalama</button>
+      <button class="btn" data-sec="yillik" onclick="tufeGoster('yillik',this)">Yıllık Değişim</button>
+      <button class="btn" data-sec="aylik" onclick="tufeGoster('aylik',this)">Aylık Değişim</button>
+      <button class="btn" data-sec="aralik" onclick="tufeGoster('aralik',this)">Aralık'a Göre</button>
+    </div>
+    <div id="tufe-baslik" style="font-size:13px;font-weight:600;color:var(--green);margin-bottom:10px"></div>
+    <div style="overflow-x:auto"><table>
+      <thead><tr><th>Yıl</th><th>Oca</th><th>Şub</th><th>Mar</th><th>Nis</th><th>May</th><th>Haz</th><th>Tem</th><th>Ağu</th><th>Eyl</th><th>Eki</th><th>Kas</th><th>Ara</th></tr></thead>
+      <tbody id="tufe-tbody"></tbody>
+    </table></div>
+    <p style="font-size:11px;color:var(--t3);margin-top:9px">Kaynak: TÜİK, Tüketici Fiyat Endeksi. [2025=100] bazlı seri. Artış ayından önceki ayın oranı kullanılır (TBK md.344).</p>
+  </div>
+</div>
+
+</main>
+</div>
+
+<script>
+const TUFE_DATA = {
+  onikimort: {
+    tr: 'On İki Aylık Ortalamalara Göre Değişim (%)',
+    data: {
+      2005:[8.5,8.44,8.4,8.42,8.53,8.69,8.68,8.64,8.63,8.47,8.31,8.18],
+      2006:[8.07,8.03,8.05,8.11,8.21,8.32,8.64,8.84,9.05,9.25,9.44,9.6],
+      2007:[9.76,9.92,10.15,10.3,10.24,10.11,9.7,9.46,9.17,8.98,8.86,8.76],
+      2008:[8.61,8.53,8.4,8.33,8.47,8.64,9.07,9.43,9.76,10.12,10.31,10.44],
+      2009:[10.54,10.41,10.29,9.98,9.49,9.08,8.52,7.99,7.52,6.95,6.53,6.25],
+      2010:[6.16,6.38,6.53,6.87,7.2,7.41,7.59,7.83,8.16,8.45,8.59,8.57],
+      2011:[8.28,7.76,7.29,6.79,6.64,6.47,6.37,6.24,6.0,5.93,6.13,6.47],
+      2012:[6.95,7.48,8.02,8.59,8.68,8.89,9.11,9.29,9.53,9.53,9.26,8.89],
+      2013:[8.62,8.33,8.08,7.66,7.51,7.47,7.47,7.42,7.32,7.32,7.39,7.49],
+      2014:[7.53,7.6,7.7,7.97,8.23,8.31,8.35,8.46,8.54,8.65,8.8,8.85],
+      2015:[8.8,8.77,8.7,8.57,8.45,8.28,8.07,7.88,7.8,7.69,7.61,7.67],
+      2016:[7.87,7.97,7.96,7.84,7.71,7.74,7.91,7.98,7.92,7.89,7.79,7.78],
+      2017:[7.76,7.88,8.21,8.66,9.09,9.36,9.44,9.66,9.98,10.37,10.87,11.14],
+      2018:[11.23,11.23,11.14,11.06,11.1,11.49,12.0,12.61,13.75,14.9,15.63,16.33],
+      2019:[17.16,17.93,18.7,19.39,19.91,19.88,19.91,19.62,18.27,16.81,15.87,15.18],
+      2020:[14.52,13.94,13.33,12.66,12.1,11.88,11.51,11.27,11.47,11.74,12.04,12.28],
+      2021:[12.53,12.81,13.18,13.7,14.13,14.55,15.15,15.78,16.42,17.09,17.71,19.6],
+      2022:[22.58,25.98,29.88,34.46,39.33,44.54,49.65,54.69,59.91,65.26,70.36,72.31],
+      2023:[72.45,71.83,70.2,67.2,63.72,59.95,57.45,56.28,55.3,54.26,53.4,53.86],
+      2024:[54.72,55.91,57.5,59.64,62.51,65.07,65.93,64.91,63.47,62.02,60.45,58.51],
+      2025:[56.35,53.83,51.26,48.73,45.8,43.23,41.13,39.62,38.36,37.15,35.91,34.88],
+      2026:[33.98,33.39,32.82,0,0,0,0,0,0,0,0,0],
+    }
+  },
+  yillik: {
+    tr: 'Bir Önceki Yılın Aynı Ayına Göre (Yıllık) Değişim (%)',
+    data: {
+      2005:[9.23,8.69,7.94,8.18,8.7,8.95,7.82,7.91,7.99,7.52,7.61,7.72],
+      2006:[7.93,8.14,8.16,8.83,9.86,10.12,11.69,10.26,10.55,9.98,9.86,9.65],
+      2007:[9.93,10.16,10.86,10.72,9.23,8.6,6.9,7.39,7.12,7.7,8.4,8.39],
+      2008:[8.17,9.1,9.15,9.66,10.74,10.61,12.06,11.77,11.13,11.99,10.76,10.06],
+      2009:[9.5,7.73,7.89,6.13,5.24,5.73,5.39,5.33,5.27,5.08,5.53,6.53],
+      2010:[8.19,10.13,9.56,10.19,9.1,8.37,7.58,8.33,9.24,8.62,7.29,6.4],
+      2011:[4.9,4.16,3.99,4.26,7.17,6.24,6.31,6.65,6.15,7.66,9.48,10.45],
+      2012:[10.61,10.43,10.43,11.14,8.28,8.87,9.07,8.88,9.19,7.8,6.37,6.16],
+      2013:[7.31,7.03,7.29,6.13,6.51,8.3,8.88,8.17,7.88,7.71,7.32,7.4],
+      2014:[7.75,7.89,8.39,9.38,9.66,9.16,9.32,9.54,8.86,8.96,9.15,8.17],
+      2015:[7.24,7.55,7.61,7.91,8.09,7.2,6.81,7.14,7.95,7.58,8.1,8.81],
+      2016:[9.58,8.78,7.46,6.57,6.58,7.64,8.79,8.05,7.28,7.16,7.0,8.53],
+      2017:[9.22,10.13,11.29,11.87,11.72,10.9,9.79,10.68,11.2,11.9,12.98,11.92],
+      2018:[10.35,10.26,10.23,10.85,12.15,15.39,15.85,17.9,24.52,25.24,21.62,20.3],
+      2019:[20.35,19.67,19.71,19.5,18.71,15.72,16.65,15.01,9.26,8.55,10.56,11.84],
+      2020:[12.15,12.37,11.86,10.94,11.39,12.62,11.76,11.77,11.75,11.89,14.03,14.6],
+      2021:[14.97,15.61,16.19,17.14,16.59,17.53,18.95,19.25,19.58,19.89,21.31,36.08],
+      2022:[48.69,54.44,61.14,69.97,73.5,78.62,79.6,80.21,83.45,85.51,84.39,64.27],
+      2023:[57.68,55.18,50.51,43.68,39.59,38.21,47.83,58.94,61.53,61.36,61.98,64.77],
+      2024:[64.86,67.07,68.5,69.8,75.45,71.6,61.78,51.97,49.38,48.58,47.09,44.38],
+      2025:[42.12,39.05,38.1,37.86,35.41,35.05,33.52,32.95,33.29,32.87,31.07,30.89],
+      2026:[30.65,31.53,30.87,0,0,0,0,0,0,0,0,0],
+    }
+  },
+  aylik: {
+    tr: 'Bir Önceki Aya Göre Değişim (%)',
+    data: {
+      2005:[0.55,0.02,0.26,0.71,0.92,0.1,-0.57,0.85,1.02,1.79,1.4,0.42],
+      2006:[0.75,0.22,0.27,1.34,1.88,0.34,0.85,-0.44,1.29,1.27,1.29,0.23],
+      2007:[1.0,0.43,0.92,1.21,0.5,-0.24,-0.73,0.02,1.03,1.81,1.95,0.22],
+      2008:[0.8,1.29,0.96,1.68,1.49,-0.36,0.58,-0.24,0.45,2.6,0.83,-0.41],
+      2009:[0.29,-0.34,1.1,0.02,0.64,0.11,0.25,-0.3,0.39,2.41,1.27,0.53],
+      2010:[1.85,1.45,0.58,0.6,-0.36,-0.56,-0.48,0.4,1.23,1.83,0.03,-0.3],
+      2011:[0.41,0.73,0.42,0.87,2.42,-1.43,-0.41,0.73,0.75,3.27,1.73,0.58],
+      2012:[0.56,0.56,0.41,1.52,-0.21,-0.9,-0.23,0.56,1.03,1.96,0.38,0.38],
+      2013:[1.65,0.3,0.66,0.42,0.15,0.76,0.31,-0.1,0.77,1.8,0.01,0.46],
+      2014:[1.98,0.43,1.13,1.34,0.4,0.31,0.45,0.09,0.14,1.9,0.18,-0.44],
+      2015:[1.1,0.71,1.19,1.63,0.56,-0.51,0.09,0.4,0.89,1.55,0.67,0.21],
+      2016:[1.82,-0.02,-0.04,0.78,0.58,0.47,1.16,-0.29,0.18,1.44,0.52,1.64],
+      2017:[2.46,0.81,1.02,1.31,0.45,-0.27,0.15,0.52,0.65,2.08,1.49,0.69],
+      2018:[1.02,0.73,0.99,1.87,1.62,2.61,0.55,2.3,6.3,2.67,-1.44,-0.4],
+      2019:[1.06,0.16,1.03,1.69,0.95,0.03,1.36,0.86,0.99,2.0,0.38,0.74],
+      2020:[1.35,0.35,0.57,0.85,1.36,1.13,0.58,0.86,0.97,2.13,2.3,1.25],
+      2021:[1.68,0.91,1.08,1.68,0.89,1.94,1.8,1.12,1.25,2.39,3.51,13.58],
+      2022:[11.1,4.81,5.46,7.25,2.98,4.95,2.37,1.46,3.08,3.54,2.88,1.18],
+      2023:[6.65,3.15,2.29,2.39,0.04,3.92,9.49,9.09,4.75,3.43,3.28,2.93],
+      2024:[6.7,4.53,3.16,3.18,3.37,1.64,3.23,2.47,2.97,2.88,2.24,1.03],
+      2025:[5.03,2.27,2.46,3.0,1.53,1.37,2.06,2.04,3.23,2.55,0.87,0.89],
+      2026:[4.84,2.96,1.94,0,0,0,0,0,0,0,0,0],
+    }
+  },
+  aralik: {
+    tr: 'Bir Önceki Yılın Aralık Ayına Göre Değişim (%)',
+    data: {
+      2005:[0.55,0.57,0.83,1.55,2.49,2.59,2.0,2.87,3.93,5.79,7.27,7.72],
+      2006:[0.75,0.97,1.25,2.6,4.53,4.88,5.76,5.3,6.65,8.01,9.4,9.65],
+      2007:[1.0,1.44,2.36,3.6,4.12,3.87,3.11,3.13,4.19,6.08,8.15,8.39],
+      2008:[0.8,2.11,3.09,4.82,6.38,6.0,6.61,6.35,6.83,9.6,10.52,10.06],
+      2009:[0.29,-0.06,1.05,1.07,1.71,1.83,2.08,1.78,2.18,4.64,5.96,6.53],
+      2010:[1.85,3.32,3.93,4.55,4.17,3.59,3.09,3.5,4.77,6.69,6.72,6.4],
+      2011:[0.41,1.14,1.57,2.45,4.93,3.43,3.0,3.75,4.53,7.95,9.82,10.45],
+      2012:[0.56,1.13,1.54,3.09,2.87,1.95,1.72,2.29,3.35,5.39,5.8,6.16],
+      2013:[1.65,1.95,2.62,3.05,3.21,4.0,4.32,4.21,5.02,6.9,6.91,7.4],
+      2014:[1.98,2.42,3.57,4.95,5.37,5.69,6.16,6.25,6.4,8.41,8.61,8.17],
+      2015:[1.1,1.82,3.03,4.72,5.3,4.77,4.86,5.28,6.21,7.84,8.55,8.81],
+      2016:[1.82,1.8,1.76,2.55,3.14,3.62,4.82,4.52,4.71,6.22,6.78,8.53],
+      2017:[2.46,3.29,4.35,5.71,6.19,5.9,6.06,6.61,7.29,9.52,11.13,11.92],
+      2018:[1.02,1.76,2.77,4.69,6.38,9.17,9.78,12.3,19.5,22.74,21.05,20.3],
+      2019:[1.06,1.22,2.27,3.99,4.96,4.99,6.41,7.31,8.34,10.44,10.85,11.84],
+      2020:[1.35,1.71,2.29,3.16,4.56,5.73,6.34,7.25,8.27,10.55,13.07,14.6],
+      2021:[1.68,2.6,3.7,5.43,6.37,8.45,10.41,11.65,13.04,15.63,19.59,36.08],
+      2022:[11.1,16.53,22.98,31.87,35.93,42.35,45.39,47.16,51.38,56.08,59.64,64.27],
+      2023:[6.65,10.01,12.57,15.24,15.28,19.95,32.25,44.26,50.62,55.49,59.68,64.77],
+      2024:[6.7,11.51,15.05,18.67,22.76,24.82,28.92,32.11,36.13,40.21,43.29,44.38],
+      2025:[5.03,7.4,9.99,13.29,15.03,16.58,19.0,21.42,25.36,28.5,29.56,30.89],
+      2026:[4.84,7.96,9.99,0,0,0,0,0,0,0,0,0],
+    }
+  }
+};
+
+// 7409 s. Kanun geçici md.: 11.06.2022–01.07.2024 arasında yenilenen konut kira dönemlerinde artış en fazla %25
+function yasal25(tarih){ return tarih>=new Date(2022,5,11)&&tarih<=new Date(2024,6,1); }
+
+function tufeOrani(artisY,artisM,endeksKey){
+  let pm=artisM-1,py=artisY;
+  if(pm===0){pm=12;py--;}
+  const sec=TUFE_DATA[endeksKey];
+  if(!sec)return null;
+  const row=sec.data[py];
+  if(!row)return null;
+  const v=row[pm-1];
+  if(v===null||v===undefined||v===0)return null;
+  return parseFloat(v.toFixed(4));
+}
+function uygulananOran(oran,tarih){
+  if(oran===null)return null;
+  return (S.tur==='konut'&&yasal25(tarih))?Math.min(oran,25):oran;
+}
+
+// Alacak kalemi için dönemsel faiz (lib/faiz.js)
+function kalemFaizi(kal,vade,tak){ return Faiz.donemselFaiz(kal,vade,tak); }
+function zamanasimiSiniri(tak){ const d=new Date(tak);d.setFullYear(d.getFullYear()-5);return d; }
+function zamanasimiAktif(){ const c=document.getElementById('zamanasimiUygula');return !c||c.checked; }
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+const S={kiraci:'',bas:null,basKira:0,gun:1,tur:'konut',tak:null,endeks:'onikimort',donemler:[],aylar:[]};
+const fmt=n=>(n==null||isNaN(n))?'—':n.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fD=d=>d?d.toLocaleDateString('tr-TR'):'—';
+const pD=s=>{if(!s)return null;const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);};
+
+function goto(el){gotoById(el.dataset.page);}
+function gotoById(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  const nav=document.querySelector(`.ni[data-page="${id}"]`);
+  if(nav)nav.classList.add('active');
+  if(id==='odemeler')renderManuel();
+  if(id==='hesap')renderHesap();
+  if(id==='tufe'){tufeGoster('onikimort',document.querySelector('.card button'));}
+  window.scrollTo(0,0);
+}
+function swTab(id,el){
+  document.querySelectorAll('.tb').forEach(b=>b.classList.remove('ac'));
+  document.querySelectorAll('.tp').forEach(p=>p.classList.remove('ac'));
+  el.classList.add('ac');
+  document.getElementById('tp-'+id).classList.add('ac');
+}
+
+document.querySelectorAll('.endeks-opt').forEach(el=>{
+  el.addEventListener('click',()=>{
+    document.querySelectorAll('.endeks-opt').forEach(e=>e.classList.remove('active'));
+    el.classList.add('active');
+    S.endeks=el.dataset.key;
+  });
+});
+
+function sozlesmeyiKaydet(){
+  const bas=pD(document.getElementById('baslangic').value);
+  const kira=parseFloat(document.getElementById('baslangicKira').value);
+  if(!bas||!kira){alert('Başlangıç tarihi ve kira bedeli zorunludur.');return;}
+  S.kiraci=document.getElementById('kiraci').value;
+  S.bas=bas;S.basKira=kira;
+  S.gun=parseInt(document.getElementById('odemeGunu').value)||1;
+  S.tur=document.getElementById('mulkTuru').value;
+  S.tak=pD(document.getElementById('takipTarihi').value)||new Date();
+  S.donemler=hesaplaDonemler();
+  ayliklarOlustur(true);
+  renderDonemler();
+  document.getElementById('donem-card').style.display='';
+  const endeksAdi=TUFE_DATA[S.endeks]?.tr||S.endeks;
+  document.getElementById('donem-card-baslik').textContent=`Kira Dönemleri — ${endeksAdi}`;
+  document.getElementById('od-uyari').style.display='none';
+  document.getElementById('od-icerik').style.display='';
+  document.getElementById('h-uyari').style.display='none';
+}
+
+function hesaplaDonemler(){
+  const list=[];let anlik=S.basKira;
+  const bY=S.bas.getFullYear(),bM=S.bas.getMonth()+1;
+  const tY=S.tak.getFullYear(),tM=S.tak.getMonth()+1;
+  list.push({yil:bY,ay:bM,tarih:new Date(bY,bM-1,S.gun),oran:null,uy:null,kira:anlik,ilk:true});
+  for(let y=bY+1;y<=tY;y++){
+    const m=bM;
+    if(y===tY&&m>tM)break;
+    const tarih=new Date(y,m-1,S.gun);
+    const or=tufeOrani(y,m,S.endeks);
+    const uy=uygulananOran(or,tarih);
+    list.push({yil:y,ay:m,tarih,oran:or,uy,kira:0,ilk:false,eksik:or===null});
+  }
+  kiralariZincirle(list);
+  return list;
+}
+// Her dönemin kirası bir öncekinin üzerine uygulanan oranla hesaplanır. Oranı bilinmeyen dönemde kira artmaz.
+function kiralariZincirle(list){
+  let anlik=list[0].kira;
+  list.forEach((d,i)=>{ if(i===0)return; anlik=anlik*(1+(d.uy||0)/100); d.kira=anlik; });
+}
+function donemOranDegistir(i,inp){
+  const v=inp.value.trim()===''?null:parseFloat(inp.value.replace(',','.'));
+  const d=S.donemler[i];
+  d.uy=(v===null||isNaN(v))?null:v;
+  d.elle=true;
+  kiralariZincirle(S.donemler);
+  donemlerDegisti();
+}
+// Dönemler değişince aylık "gereken" tutarlarını yenile, girilen ödemeleri koru
+function donemlerDegisti(){
+  const eski={};S.aylar.forEach(a=>{eski[+a.muaccel]=a.odenen;});
+  const tamMi={};S.aylar.forEach(a=>{tamMi[+a.muaccel]=Math.abs(a.odenen-a.gereken)<0.01;});
+  ayliklarOlustur(true);
+  S.aylar.forEach(a=>{const k=+a.muaccel;if(k in eski&&!tamMi[k])a.odenen=eski[k];});
+  renderDonemler();
+}
+
+function kiraIcinAy(y,m){
+  let k=S.donemler[0].kira;
+  for(const d of S.donemler){if(d.yil<y||(d.yil===y&&d.ay<=m))k=d.kira;}
+  return k;
+}
+
+function ayliklarOlustur(tam){
+  const list=[];
+  let cur=new Date(S.bas.getFullYear(),S.bas.getMonth(),1);
+  const son=new Date(S.tak.getFullYear(),S.tak.getMonth(),1);
+  while(cur<=son){
+    const y=cur.getFullYear(),m=cur.getMonth()+1;
+    const ger=kiraIcinAy(y,m);
+    list.push({muaccel:new Date(y,m-1,S.gun),gereken:ger,odenen:tam?ger:0});
+    cur.setMonth(cur.getMonth()+1);
+  }
+  S.aylar=list;
+}
+
+function renderDonemler(){
+  const tb=document.getElementById('donem-tbody');tb.innerHTML='';
+  let eksikVar=false;
+  S.donemler.forEach((d,i)=>{
+    const yas=!d.ilk&&!d.elle&&S.tur==='konut'&&yasal25(d.tarih)&&d.oran!==null&&d.oran>25;
+    if(!d.ilk&&d.uy===null)eksikVar=true;
+    const etiket=d.ilk?'<span class="b bl">Başlangıç</span>'
+      :d.uy===null?'<span class="b r">TÜİK verisi yok</span>'
+      :d.elle?'<span class="b a">Elle girildi</span>'
+      :yas?'<span class="b a">Yasal Tavan %25</span>':'<span class="b g">TÜFE</span>';
+    const uyHucre=d.ilk?'—':`<input class="ei${d.uy===null?' ch':''}" style="width:90px;text-align:right" type="number" step="0.01" value="${d.uy!==null?d.uy:''}" placeholder="oran %" onchange="donemOranDegistir(${i},this)">`;
+    tb.innerHTML+=`<tr>
+      <td>${i+1}. Dönem</td><td>${fD(d.tarih)}</td>
+      <td>${etiket}</td>
+      <td class="tn">${d.oran!==null?d.oran.toFixed(2):'—'}</td>
+      <td class="tn">${uyHucre}</td>
+      <td class="tn"><strong>${fmt(d.kira)}</strong></td>
+      <td><button class="db" onclick="donemSil(${i})" title="Sil">×</button></td>
+    </tr>`;
+  });
+  if(eksikVar)tb.innerHTML+=`<tr><td colspan="7"><div class="alt r" style="margin:6px 0 0">Bazı dönemler için TÜİK verisi tabloda yok. Bu dönemlerde kira <strong>artırılmadı</strong>; doğru sonuç için "Uygulanan (%)" sütununa oranı elle girin.</div></td></tr>`;
+}
+function donemSil(i){if(i===0){alert('İlk dönem silinemez.');return;}S.donemler.splice(i,1);kiralariZincirle(S.donemler);donemlerDegisti();}
+
+function renderManuel(){
+  if(!S.aylar.length)return;
+  const tb=document.getElementById('man-tbody');tb.innerHTML='';
+  S.aylar.forEach((a,i)=>{
+    const kal=Math.max(0,a.gereken-a.odenen);
+    const ch=Math.abs(a.odenen-a.gereken)>0.01;
+    const dur=kal<0.01?'<span class="b g">Tamam</span>':a.odenen===0?'<span class="b r">Ödenmedi</span>':'<span class="b a">Eksik</span>';
+    tb.innerHTML+=`<tr id="row-${i}" class="${ch?'rch':''}">
+      <td>${fD(a.muaccel)}</td>
+      <td class="tn">${fmt(a.gereken)}</td>
+      <td class="tn" style="padding-right:2px">
+        <input class="ei ${ch?'ch':''}" id="ei-${i}" type="number" step="0.01" min="0"
+          value="${a.odenen.toFixed(2)}"
+          onchange="odGunBlur(${i},this)"
+          onblur="odGunBlur(${i},this)"
+          onkeydown="if(event.key==='Enter'){odGunBlur(${i},this);this.blur();}">
+      </td>
+      <td style="white-space:nowrap;padding-left:2px">
+        <button class="rst tam" onclick="satirTam(${i})" title="Tam ödenmiş yap">↺ Tam</button>
+        <button class="rst" onclick="satirSifir(${i})" title="Sıfırla">✕ 0</button>
+      </td>
+      <td class="tn" id="kal-${i}" style="${kal>0.01?'color:var(--red);font-weight:500':''}">${kal>0.01?fmt(kal):'—'}</td>
+      <td id="dur-${i}">${dur}</td>
+    </tr>`;
+  });
+  guncelToplam();
+}
+
+function guncelToplam(){
+  let tG=0,tO=0,tK=0;
+  S.aylar.forEach(a=>{tG+=a.gereken;tO+=a.odenen;tK+=Math.max(0,a.gereken-a.odenen);});
+  document.getElementById('mt-g').textContent=fmt(tG);
+  document.getElementById('mt-o').textContent=fmt(tO);
+  document.getElementById('mt-k').textContent=fmt(tK);
+}
+
+function satirGuncelle(i){
+  const a=S.aylar[i];
+  const kal=Math.max(0,a.gereken-a.odenen);
+  const ch=Math.abs(a.odenen-a.gereken)>0.01;
+  const row=document.getElementById('row-'+i);
+  if(row)row.className=ch?'rch':'';
+  const inp=document.getElementById('ei-'+i);
+  if(inp&&document.activeElement!==inp){inp.value=a.odenen.toFixed(2);}
+  if(inp)inp.className='ei'+(ch?' ch':'');
+  const ke=document.getElementById('kal-'+i);
+  if(ke){ke.textContent=kal>0.01?fmt(kal):'—';ke.style.color=kal>0.01?'var(--red)':'';ke.style.fontWeight=kal>0.01?'500':'';}
+  const de=document.getElementById('dur-'+i);
+  if(de){de.innerHTML=kal<0.01?'<span class="b g">Tamam</span>':a.odenen===0?'<span class="b r">Ödenmedi</span>':'<span class="b a">Eksik</span>';}
+  guncelToplam();
+}
+
+function odGunBlur(i,inp){
+  S.aylar[i].odenen=Math.max(0,parseFloat(inp.value)||0);
+  inp.value=S.aylar[i].odenen.toFixed(2);
+  satirGuncelle(i);
+}
+function satirTam(i){S.aylar[i].odenen=S.aylar[i].gereken;const inp=document.getElementById('ei-'+i);if(inp)inp.value=S.aylar[i].gereken.toFixed(2);satirGuncelle(i);}
+function satirSifir(i){S.aylar[i].odenen=0;const inp=document.getElementById('ei-'+i);if(inp)inp.value='0.00';satirGuncelle(i);}
+function hepsiTam(){S.aylar.forEach((a,i)=>{a.odenen=a.gereken;const inp=document.getElementById('ei-'+i);if(inp)inp.value=a.gereken.toFixed(2);satirGuncelle(i);});}
+function hepsiSifir(){if(!confirm('Tüm ödemeleri 0 yapmak istiyor musunuz?'))return;S.aylar.forEach((a,i)=>{a.odenen=0;const inp=document.getElementById('ei-'+i);if(inp)inp.value='0.00';satirGuncelle(i);});}
+
+let XR=[],XH=[];
+function dzOver(e){e.preventDefault();document.getElementById('dz').classList.add('ov');}
+function dzLeave(){document.getElementById('dz').classList.remove('ov');}
+function dzDrop(e){e.preventDefault();dzLeave();const f=e.dataTransfer.files[0];if(f)dosyaOku(f);}
+
+function dosyaOku(file){
+  if(!file)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array',cellDates:true});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const data=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      if(data.length<2){alert('Dosyada yeterli veri bulunamadı.');return;}
+      XH=data[0].map((h,i)=>String(h)||'Sütun '+(i+1));
+      XR=data.slice(1).filter(r=>r.some(c=>c!==''));
+      doldurSelects();onizle();
+      document.getElementById('cm-area').style.display='';
+    }catch(err){alert('Dosya okunamadı: '+err.message);}
+  };
+  r.readAsArrayBuffer(file);
+}
+
+function doldurSelects(){
+  ['map-t','map-o'].forEach(id=>{
+    const sel=document.getElementById(id);sel.innerHTML='';
+    XH.forEach((h,i)=>{
+      const o=document.createElement('option');o.value=i;o.textContent=`[${i+1}] ${h}`;
+      const hl=h.toLowerCase();
+      if(id==='map-t'&&(hl.includes('tarih')||hl.includes('date')||hl.includes('ay')))o.selected=true;
+      if(id==='map-o'&&(hl.includes('tutar')||hl.includes('ödenen')||hl.includes('ödeme')||hl.includes('amount')||hl.includes('miktar')))o.selected=true;
+      sel.appendChild(o);
+    });
+  });
+}
+
+function onizle(){
+  const ti=parseInt(document.getElementById('map-t').value);
+  const oi=parseInt(document.getElementById('map-o').value);
+  const p=document.getElementById('prev');
+  let h=`<table><thead><tr><th>${esc(XH[ti])}</th><th class="tn">${esc(XH[oi])}</th></tr></thead><tbody>`;
+  XR.slice(0,8).forEach(r=>{h+=`<tr><td>${esc(r[ti])}</td><td class="tn">${esc(r[oi])}</td></tr>`;});
+  if(XR.length>8)h+=`<tr><td colspan="2" style="color:var(--t3);font-size:11px">...ve ${XR.length-8} satır daha</td></tr>`;
+  p.innerHTML=h+'</tbody></table>';
+}
+
+function excelTarihParse(v){
+  if(!v&&v!==0)return null;
+  if(v instanceof Date)return v;
+  if(typeof v==='number'&&v>0){return new Date((v-25569)*86400*1000);}
+  if(typeof v==='string'){
+    const s=v.trim();
+    let m=s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+    if(m)return new Date(+m[3],+m[2]-1,+m[1]);
+    m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if(m)return new Date(+m[3],+m[2]-1,+m[1]);
+    m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if(m)return new Date(+m[1],+m[2]-1,+m[3]);
+  }
+  return null;
+}
+
+function excelUygula(){
+  if(!S.aylar.length){alert('Önce sözleşme bilgilerini kaydedin.');return;}
+  const ti=parseInt(document.getElementById('map-t').value);
+  const oi=parseInt(document.getElementById('map-o').value);
+  const ayMap={};
+  XR.forEach(r=>{
+    const tar=excelTarihParse(r[ti]);
+    const tut=parseFloat(String(r[oi]).replace(/[^\d.,\-]/g,'').replace(',','.'))||0;
+    if(!tar)return;
+    const k=tar.getFullYear()+'_'+(tar.getMonth()+1);
+    ayMap[k]=(ayMap[k]||0)+tut;
+  });
+  S.aylar.forEach(a=>{
+    const k=a.muaccel.getFullYear()+'_'+(a.muaccel.getMonth()+1);
+    if(ayMap[k]!==undefined)a.odenen=ayMap[k];
+  });
+  const n=Object.keys(ayMap).length;
+  document.getElementById('ex-msg').textContent=`✓ ${n} aya ait ödeme yüklendi`;
+  setTimeout(()=>document.getElementById('ex-msg').textContent='',3000);
+  swTab('manuel',document.querySelector('.tb'));
+  renderManuel();
+}
+
+// Tüm alacak kalemleri ve dönemsel faizleri (ekran ve Excel ortak kullanır)
+function hesapKalemleri(){
+  const tak=S.tak||new Date();
+  const sinir=zamanasimiSiniri(tak);
+  const zUygula=zamanasimiAktif();
+  const kalemler=[];let dusen=0;
+  S.aylar.forEach(a=>{
+    const kal=Math.max(0,a.gereken-a.odenen);
+    if(kal<0.01)return;
+    if(zUygula&&a.muaccel<sinir){dusen+=kal;return;}
+    kalemler.push({a,kal,f:kalemFaizi(kal,a.muaccel,tak)});
+  });
+  return {tak,sinir,zUygula,kalemler,dusen};
+}
+const parcaYazi=f=>f.parcalar.map(p=>`%${String(p.oran).replace('.',',')} × ${p.gun} g`).join(' + ')||'—';
+
+function renderHesap(){
+  if(!S.aylar.length){
+    document.getElementById('h-uyari').style.display='';
+    document.getElementById('h-icerik').style.display='none';
+    return;
+  }
+  document.getElementById('h-uyari').style.display='none';
+  document.getElementById('h-icerik').style.display='';
+
+  const {tak,sinir,zUygula,kalemler,dusen}=hesapKalemleri();
+
+  const uyariDiv=document.getElementById('zamanasimi-uyari');
+  if(zUygula&&dusen>0.01){
+    uyariDiv.innerHTML=`⚠️ <strong>Zamanaşımı (5 Yıl):</strong> ${fD(sinir)} tarihinden önce muaccel olan ${fmt(dusen)} ₺ alacak hesaplamaya dahil edilmemiştir.`;
+    uyariDiv.style.display='';
+  }else uyariDiv.style.display='none';
+
+  const tb=document.getElementById('fai-tbody');
+  let html='',tG=0,tO=0,tK=0,tF=0;
+  const oranTop={};
+  kalemler.forEach(({a,kal,f})=>{
+    tG+=a.gereken;tO+=a.odenen;tK+=kal;tF+=f.toplam;
+    f.parcalar.forEach(p=>{const k=p.oran+'|'+p.dayanak;oranTop[k]=oranTop[k]||{gun:0,faiz:0};oranTop[k].gun+=p.gun;oranTop[k].faiz+=p.faiz;});
+    html+=`<tr>
+      <td>${fD(a.muaccel)}</td>
+      <td class="tn">${fmt(a.gereken)}</td>
+      <td class="tn">${fmt(a.odenen)}</td>
+      <td class="tn" style="color:var(--red);font-weight:500">${fmt(kal)}</td>
+      <td class="tn">${f.gun}</td>
+      <td style="font-size:12px;white-space:nowrap">${parcaYazi(f)}</td>
+      <td class="tn" style="color:var(--amber)">${fmt(f.toplam)}</td>
+    </tr>`;
+  });
+  tb.innerHTML=html;
+
+  // Oran dönemleri özeti
+  const donemListe=Faiz.donemler();
+  document.getElementById('oran-tbody').innerHTML=donemListe.map(p=>{
+    const t=oranTop[p.oran+'|'+p.dayanak];
+    const bitis=p.bit===Infinity?'devam ediyor':fD(Faiz.gunNoTarih(p.bit));
+    return `<tr${t?'':' style="color:var(--t3)"'}>
+      <td>${fD(Faiz.gunNoTarih(p.bas))} – ${bitis}</td>
+      <td class="tn"><strong>%${String(p.oran).replace('.',',')}</strong></td>
+      <td style="font-size:12px">${esc(p.dayanak)}</td>
+      <td class="tn">${t?t.gun:'—'}</td>
+      <td class="tn">${t?fmt(t.faiz):'—'}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('ft-g').textContent=fmt(tG);
+  document.getElementById('ft-o').textContent=fmt(tO);
+  document.getElementById('ft-k').textContent=fmt(tK);
+  document.getElementById('ft-f').textContent=fmt(tF);
+  document.getElementById('m-ana').textContent=fmt(tK)+' ₺';
+  document.getElementById('m-fai').textContent=fmt(tF)+' ₺';
+  document.getElementById('m-top').textContent=fmt(tK+tF)+' ₺';
+  document.getElementById('m-tar').textContent=fD(tak);
+
+  document.getElementById('oz-kiraci').textContent=S.kiraci||'—';
+  document.getElementById('oz-bas').textContent=fD(S.bas);
+  document.getElementById('oz-kira').textContent=fmt(S.basKira)+' ₺';
+  document.getElementById('oz-tur').textContent=S.tur==='konut'?'Konut':'İş Yeri';
+  document.getElementById('oz-endeks').textContent=TUFE_DATA[S.endeks]?.tr||S.endeks;
+  document.getElementById('oz-tak').textContent=fD(tak);
+
+  document.getElementById('pdf-kiraci-ad').textContent=S.kiraci?`Kiracı: ${S.kiraci}`:'Kira Alacak Raporu';
+  document.getElementById('pdf-tarih-info').textContent=`Takip tarihi: ${fD(tak)} · Üretim: ${new Date().toLocaleDateString('tr-TR')}`;
+}
+
+function excelExport(){
+  if(!S.aylar.length){alert('Önce hesaplama yapın.');return;}
+  const {tak,sinir,zUygula,kalemler}=hesapKalemleri();
+  const r2=n=>Math.round(n*100)/100;
+  // Hesapta kullanılan oran dönemleri -> her biri için gün ve faiz sütunu
+  const donemListe=Faiz.donemler().filter(p=>kalemler.some(k=>k.f.parcalar.some(x=>x.oran===p.oran&&x.dayanak===p.dayanak)));
+  const pIdx=(x)=>donemListe.findIndex(p=>p.oran===x.oran&&p.dayanak===x.dayanak);
+
+  const wb=XLSX.utils.book_new();
+  const rows=[
+    ['KİRA ALACAK VE FAİZ HESABI'],
+    [''],
+    ['Kiracı',S.kiraci],
+    ['Başlangıç Tarihi',fD(S.bas)],
+    ['Başlangıç Kirası (₺)',S.basKira],
+    ['Mülk Türü',S.tur==='konut'?'Konut':'İş Yeri'],
+    ['Endeks Türü',TUFE_DATA[S.endeks]?.tr],
+    ['Takip Tarihi',fD(tak)],
+    ['Zamanaşımı Sınırı (5 Yıl)',zUygula?fD(sinir):'Uygulanmadı'],
+    [''],
+    ['Muacceliyet Tarihi','Ödenmesi Gereken (₺)','Ödenen (₺)','Kalan Alacak (₺)','Toplam Gün',
+      ...donemListe.flatMap(p=>[`%${p.oran} Gün`,`%${p.oran} Faiz (₺)`]),'Toplam Faiz (₺)'],
+  ];
+  let tK=0,tF=0;
+  kalemler.forEach(({a,kal,f})=>{
+    tK+=kal;tF+=f.toplam;
+    const cols=donemListe.flatMap(()=>[0,0]);
+    f.parcalar.forEach(x=>{const i=pIdx(x);cols[i*2]=x.gun;cols[i*2+1]=r2(x.faiz);});
+    rows.push([fD(a.muaccel),r2(a.gereken),r2(a.odenen),r2(kal),f.gun,...cols,r2(f.toplam)]);
+  });
+  rows.push(['']);
+  rows.push(['UYGULANAN KANUNİ FAİZ DÖNEMLERİ']);
+  Faiz.donemler().forEach(p=>rows.push([`${fD(Faiz.gunNoTarih(p.bas))} – ${p.bit===Infinity?'devam ediyor':fD(Faiz.gunNoTarih(p.bit))}`,`%${p.oran}`,p.dayanak]));
+  rows.push(['']);
+  rows.push(['ÖZET HESAP:']);
+  rows.push(['Anapara Alacağı (₺)',r2(tK)]);
+  rows.push(['Faiz Alacağı (₺)',r2(tF)]);
+  rows.push(['TOPLAM ALACAK (₺)',r2(tK+tF)]);
+  rows.push(['']);
+  rows.push(['Faiz = Σ (Kalan Alacak × Dönem Oranı × Gün / 365), bileşiksiz. Faiz vade gününün ertesinden başlar.']);
+  rows.push(['YASAL UYARI: Bu hesap bilgilendirme amaçlıdır, kesin hukuki belge niteliği taşımaz.']);
+
+  const ws1=XLSX.utils.aoa_to_sheet(rows);
+  ws1['!cols']=[{wch:24},{wch:20},{wch:15},{wch:18},{wch:12},...donemListe.flatMap(()=>[{wch:10},{wch:14}]),{wch:16}];
+  XLSX.utils.book_append_sheet(wb,ws1,'Alacak Detay');
+
+  const rows2=[['Dönem','Başlangıç Tarihi','Artış Türü','TÜİK Oranı (%)','Uygulanan (%)','Aylık Kira (₺)']];
+  S.donemler.forEach((d,i)=>{
+    const tur=d.ilk?'Başlangıç':d.uy===null?'TÜİK verisi yok (artış yok)':d.elle?'Elle girildi':(S.tur==='konut'&&yasal25(d.tarih)&&d.oran>25)?'Yasal Tavan %25':'TÜFE';
+    rows2.push([`${i+1}. Dönem`,fD(d.tarih),tur,d.oran??'—',d.uy??'—',r2(d.kira)]);
+  });
+  const ws2=XLSX.utils.aoa_to_sheet(rows2);
+  ws2['!cols']=[{wch:12},{wch:16},{wch:26},{wch:16},{wch:16},{wch:16}];
+  XLSX.utils.book_append_sheet(wb,ws2,'Kira Dönemleri');
+
+  XLSX.writeFile(wb,`Kira_Alacak_${S.kiraci?S.kiraci.replace(/\s/g,'_')+'_':''}${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+let aktifTufeSec='onikimort';
+function tufeGoster(key,el){
+  aktifTufeSec=key;
+  document.querySelectorAll('.card button[data-sec]').forEach(b=>{b.classList.remove('p');});
+  if(el)el.classList.add('p');
+  const sec=TUFE_DATA[key];
+  if(!sec)return;
+  document.getElementById('tufe-baslik').textContent=sec.tr;
+  const tb=document.getElementById('tufe-tbody');tb.innerHTML='';
+  Object.entries(sec.data).sort((a,b)=>b[0]-a[0]).forEach(([y,v])=>{
+    let h=`<td><strong>${y}</strong></td>`;
+    v.forEach(x=>{h+=`<td class="tn" style="font-size:12px">${x!==null&&x!==0?x.toFixed(2):'<span style="color:var(--t3)">—</span>'}</td>`;});
+    tb.innerHTML+=`<tr>${h}</tr>`;
+  });
+}
+
+function ornekYukle(){
+  document.getElementById('kiraci').value='Örnek Kişi';
+  document.getElementById('baslangic').value='2015-01-01';
+  document.getElementById('baslangicKira').value='1900';
+  document.getElementById('odemeGunu').value='1';
+  document.getElementById('mulkTuru').value='konut';
+  document.getElementById('takipTarihi').value=new Date().toISOString().slice(0,10);
+  document.querySelectorAll('.endeks-opt').forEach(e=>e.classList.remove('active'));
+  document.querySelector('.endeks-opt[data-key="onikimort"]').classList.add('active');
+  S.endeks='onikimort';
+  sozlesmeyiKaydet();
+  const od={'2018_12':1500,'2019_1':0,'2019_2':0,'2019_3':0,'2019_4':1500,'2019_5':600,'2019_6':1500,'2019_7':1000,'2019_8':2100,'2019_9':1600,'2019_10':260,'2019_11':1700,'2019_12':1500,'2020_1':1500,'2020_2':1600,'2020_3':1400,'2020_4':0,'2020_5':0,'2020_6':1100,'2020_7':500,'2020_8':600,'2020_9':0,'2020_10':1600,'2020_11':1750,'2020_12':300,'2021_1':1600,'2021_2':1600,'2021_3':1600,'2021_4':1600,'2021_5':1000,'2021_6':2200,'2021_7':1600,'2021_8':1100,'2021_9':1700,'2021_10':850,'2021_11':1850,'2021_12':2000,'2022_1':2000,'2022_2':2400,'2022_3':2100,'2022_4':2000,'2022_5':2220,'2022_6':2000,'2022_7':2200,'2022_8':2000,'2022_9':2300,'2022_10':2000,'2022_11':3200,'2022_12':3000,'2023_1':3400,'2023_2':3100,'2023_3':300,'2023_4':2000,'2023_5':4300,'2023_6':3100,'2023_7':3100,'2023_8':3250,'2023_9':0,'2023_10':0};
+  S.aylar.forEach(a=>{const k=a.muaccel.getFullYear()+'_'+(a.muaccel.getMonth()+1);if(od[k]!==undefined)a.odenen=od[k];});
+  renderManuel();
+}
+
+tufeGoster('onikimort',null);
+</script>
+</body>
+</html>

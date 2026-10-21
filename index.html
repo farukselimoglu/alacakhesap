@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AlacakHesap</title>
+<meta name="description" content="Hukukçular için ücretsiz alacak, faiz ve kira hesaplama araçları.">
+<style>
+:root{--bg:#f7f6f2;--surface:#fff;--border:#e2ddd6;--text:#1a1916;--t2:#6b6760;--green:#0f6e56;--gl:#e1f5ee;
+  font-family:'Segoe UI',system-ui,-apple-system,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161614;--surface:#1f1f1c;--border:#34322d;--text:#ecebe6;--t2:#a8a59d;--gl:#173a30}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);min-height:100vh}
+.wrap{max-width:960px;margin:0 auto;padding:40px 16px}
+h1{font-size:26px}.sub{color:var(--t2);margin:6px 0 28px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+a.tool{display:block;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px;color:inherit;text-decoration:none;transition:border .15s}
+a.tool:hover{border-color:var(--green)}
+.tool h2{font-size:15px;margin-bottom:6px}.tool p{font-size:13px;color:var(--t2)}
+.soon{opacity:.55;pointer-events:none}
+.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:99px;background:var(--gl);color:var(--green);margin-top:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>⚖️ AlacakHesap</h1>
+  <p class="sub">Hukukçular için ücretsiz alacak ve faiz hesaplama araçları.</p>
+  <div class="grid">
+    <a class="tool" href="araclar/kira-takip.html">
+      <h2>🏠 Kira Takip &amp; Alacak Hesabı</h2>
+      <p>TÜFE'ye göre kira artışları, ödenmeyen kiralar ve dönemsel kanuni faiz.</p>
+      <span class="tag">Hazır</span>
+    </a>
+    <a class="tool soon"><h2>📈 Kanuni Faiz Hesaplama</h2><p>Oran değişimlerine göre dönemsel faiz.</p><span class="tag">Yakında</span></a>
+    <a class="tool soon"><h2>🏦 Ticari (Avans) Faiz</h2><p>TCMB avans faizi dönemleriyle temerrüt faizi.</p><span class="tag">Yakında</span></a>
+    <a class="tool soon"><h2>👷 Kıdem &amp; İhbar Tazminatı</h2><p>Tavan, brüt-net ve vergi kesintileriyle.</p><span class="tag">Yakında</span></a>
+  </div>
+</div>
+</body>
+</html>

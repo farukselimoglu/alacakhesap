@@ -1,0 +1,8 @@
+{
+  "name": "alacakhesap",
+  "private": true,
+  "description": "Hukuk alanında alacak ve faiz hesaplama araçları",
+  "scripts": {
+    "test": "node --test tests/*.test.js"
+  }
+}
