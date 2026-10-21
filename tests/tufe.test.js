@@ -76,8 +76,9 @@ test('betik sahte EVDS ile tabloyu günceller', async () => {
     const u = decodeURIComponent(req.url);
     let j;
     if (u.includes('categories')) j = [{ CATEGORY_ID: 7, TOPIC_TITLE_TR: 'FİYAT ENDEKSLERİ' }];
-    else if (u.includes('datagroups')) j = [{ DATAGROUP_CODE: 'bie_tufe25', DATAGROUP_NAME: 'Tüketici Fiyat Endeksi (2025=100)' }];
-    else if (u.includes('serieList')) j = [{ SERIE_CODE: 'TP.YENI.GENEL', SERIE_NAME: 'TÜFE Genel' }, { SERIE_CODE: 'TP.YENI.GIDA', SERIE_NAME: 'Gıda' }];
+    else if (u.includes('datagroups')) j = [{ DATAGROUP_CODE: 'bie_tufe25', DATAGROUP_NAME: 'Tüketici Fiyat Endeksi (2025=100)' },
+      { DATAGROUP_CODE: 'bie_eski', DATAGROUP_NAME: 'Tüketici Fiyat Endeksi (2003=100) (Arşiv)' }];
+    else if (u.includes('serieList')) j = [{ SERIE_CODE: 'TP.YENI.GENEL', SERIE_NAME: 'Genel Endeks' }, { SERIE_CODE: 'TP.YENI.GIDA', SERIE_NAME: 'Gıda' }];
     else if (u.includes('series=TP.FG.J0')) j = seri('TP.FG.J0', k => k <= '2025-12');
     else if (u.includes('series=TP.YENI.GENEL')) j = seri('TP.YENI.GENEL', k => k >= '2025-01');
     res.writeHead(j ? 200 : 404, { 'content-type': 'application/json' });
@@ -90,7 +91,7 @@ test('betik sahte EVDS ile tabloyu günceller', async () => {
   const ciktiYol = path.join(dir, 'out');
   try {
     await new Promise((ok, hata) => execFile(process.execPath, [path.join(__dirname, '..', 'scripts', 'tufe-guncelle.js')], {
-      env: { ...process.env, EVDS_API_KEY: 'test-anahtar', EVDS_TUFE_SERIES: '', EVDS_BASE: `http://localhost:${sunucu.address().port}`,
+      env: { ...process.env, EVDS_API_KEY: 'test-anahtar', EVDS_TUFE_SERIES: 'ara', EVDS_BASE: `http://localhost:${sunucu.address().port}`,
         TUFE_TABLO: tabloYol, TUFE_RAPOR: path.join(dir, 'rapor.md'), GITHUB_OUTPUT: ciktiYol },
     }, (e, out, err) => (e ? hata(new Error(err || out)) : ok())));
     const t = require(tabloYol);

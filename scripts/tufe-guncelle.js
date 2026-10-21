@@ -4,7 +4,8 @@
  *
  * Ortam değişkenleri:
  *   EVDS_API_KEY       (zorunlu) EVDS API anahtarı — GitHub secret
- *   EVDS_TUFE_SERIES   TÜFE 2025=100 Genel endeks seri kodu. Boşsa EVDS'te aranır.
+ *   EVDS_TUFE_SERIES   TÜFE 2025=100 Genel endeks seri kodu (varsayılan TP.TUKFIY2025.GENEL).
+ *                      'ara' verilirse EVDS'te aranır.
  *   EVDS_ESKI_SERIES   TÜFE 2003=100 Genel endeks seri kodu (varsayılan TP.FG.J0)
  *   EVDS_BASE          EVDS servis adresi (varsayılan https://evds3.tcmb.gov.tr/igmevdsms-dis)
  *
@@ -22,6 +23,7 @@ const RAPOR = process.env.TUFE_RAPOR || path.join(KOK, 'tufe-rapor.md');
 const BASE = (process.env.EVDS_BASE || 'https://evds3.tcmb.gov.tr/igmevdsms-dis').replace(/\/$/, '');
 const KEY = process.env.EVDS_API_KEY;
 const ESKI = process.env.EVDS_ESKI_SERIES || 'TP.FG.J0';
+const YENI_VARSAYILAN = 'TP.TUKFIY2025.GENEL';
 
 const kucuk = s => String(s || '').toLocaleLowerCase('tr');
 const metin = o => Object.values(o || {}).filter(v => typeof v === 'string').join(' ');
@@ -44,14 +46,14 @@ async function seriBul() {
     const kId = k.CATEGORY_ID ?? k.categoryId ?? k.id;
     const gruplar = liste(await evds(`datagroups/mode=2&code=${kId}&type=json`));
     for (const g of gruplar) {
-      const gm = kucuk(metin(g));
-      if (!(gm.includes('tüketici') && gm.includes('2025'))) continue;
+      const gm = kucuk(g.DATAGROUP_NAME ?? metin(g));
+      if (!(gm.includes('tüketici fiyat endeksi') && gm.includes('2025=100')) || gm.includes('arşiv')) continue;
       const gKod = g.DATAGROUP_CODE ?? g.datagroupCode ?? g.code;
       const seriler = liste(await evds(`serieList/type=json&code=${gKod}`));
       for (const s of seriler) {
         const kod = s.SERIE_CODE ?? s.serieCode ?? s.code;
         const ad = s.SERIE_NAME ?? s.serieName ?? metin(s);
-        adaylar.push({ kod, ad, grup: g.DATAGROUP_NAME ?? gKod, genel: /genel|general/i.test(ad) });
+        adaylar.push({ kod, ad, grup: g.DATAGROUP_NAME ?? gKod, genel: /^genel endeks$/i.test(String(ad).trim()) });
       }
     }
   }
@@ -77,8 +79,8 @@ async function main() {
   if (!KEY) throw new Error('EVDS_API_KEY tanımlı değil (GitHub → Settings → Secrets and variables → Actions).');
   const rapor = ['## TÜFE verisi güncellemesi', ''];
 
-  let yeniKod = process.env.EVDS_TUFE_SERIES;
-  if (!yeniKod) {
+  let yeniKod = process.env.EVDS_TUFE_SERIES || YENI_VARSAYILAN;
+  if (yeniKod === 'ara') {
     const adaylar = await seriBul();
     const genel = adaylar.filter(a => a.genel);
     rapor.push('### Seri kodu otomatik arandı', '', '| Kod | Ad | Grup |', '|---|---|---|',
