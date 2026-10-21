@@ -87,7 +87,10 @@ test('betik sahte EVDS ile tabloyu günceller', async () => {
   await new Promise(r => sunucu.listen(0, r));
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'tufe-'));
   const tabloYol = path.join(dir, 'tufe.js');
-  fs.copyFileSync(path.join(__dirname, '..', 'veri', 'tufe.js'), tabloYol);
+  // Depodaki veriden bağımsız: Nisan 2026 ve sonrası boş başlar
+  const kopya = JSON.parse(JSON.stringify(require('../veri/tufe.js')));
+  for (const tur of Object.keys(kopya)) kopya[tur].data[2026] = kopya[tur].data[2026].map((v, i) => (i < 3 ? v : 0));
+  fs.writeFileSync(tabloYol, H.tabloDosyasi(kopya, 'test'));
   const ciktiYol = path.join(dir, 'out');
   try {
     await new Promise((ok, hata) => execFile(process.execPath, [path.join(__dirname, '..', 'scripts', 'tufe-guncelle.js')], {

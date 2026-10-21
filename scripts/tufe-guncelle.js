@@ -108,8 +108,10 @@ async function main() {
   const once = JSON.stringify(tablo);
   const { eklenen, farklar, kontrolEdilen } = H.tabloyaEkle(tablo, idx);
 
-  // Yalnızca son 3 yılın kontrollerini raporla (eski yıllarda baz farkı beklenir)
-  const sinirYil = new Date().getFullYear() - 1;
+  // Doğrulama yalnızca yeni bazlı serinin tek başına geçerli olduğu yıllarda yapılır.
+  // Yeni serinin ilk yılında (2025) resmi oranlar eski seriden hesaplandığı için küçük farklar beklenir.
+  const yeniIlkYil = +Object.keys(yeni).sort()[0].slice(0, 4);
+  const sinirYil = Math.max(yeniIlkYil + 1, new Date().getFullYear() - 1);
   const yakinFark = farklar.filter(f => +f.ay.slice(0, 4) >= sinirYil);
   const yakinKontrol = kontrolEdilen.filter(f => +f.ay.slice(0, 4) >= sinirYil);
 
