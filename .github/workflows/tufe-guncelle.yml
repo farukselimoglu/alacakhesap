@@ -1,0 +1,57 @@
+name: TÜFE verisini güncelle
+
+# TÜİK TÜFE'yi her ayın 3'ünde 10:00'da açıklar. Görev 3–6'sı arası her gün
+# 12:15'te (TR) çalışır; yeni veri yoksa hiçbir şey yapmaz.
+on:
+  schedule:
+    - cron: '15 9 3-6 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency: tufe-guncelle
+
+jobs:
+  guncelle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: EVDS'ten veriyi çek
+        id: cek
+        run: node scripts/tufe-guncelle.js
+        env:
+          EVDS_API_KEY: ${{ secrets.EVDS_API_KEY }}
+          EVDS_TUFE_SERIES: ${{ vars.EVDS_TUFE_SERIES }}
+
+      - name: Testleri çalıştır
+        if: steps.cek.outputs.degisti == 'true'
+        run: npm test
+
+      - name: Pull request aç
+        if: steps.cek.outputs.degisti == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SON_AY: ${{ steps.cek.outputs.son_ay }}
+          DURUM: ${{ steps.cek.outputs.durum }}
+        run: |
+          DAL=otomatik/tufe-guncelleme
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$DAL"
+          git add veri/tufe.js
+          git commit -m "TÜFE verisi: $SON_AY"
+          git push --force origin "$DAL"
+          BASLIK="TÜFE verisi: $SON_AY"
+          [ "$DURUM" = "kontrol" ] && BASLIK="[KONTROL GEREKLİ] $BASLIK"
+          if gh pr view "$DAL" --json state -q .state 2>/dev/null | grep -q OPEN; then
+            gh pr edit "$DAL" --title "$BASLIK" --body-file tufe-rapor.md
+          else
+            gh pr create --head "$DAL" --title "$BASLIK" --body-file tufe-rapor.md
+          fi
