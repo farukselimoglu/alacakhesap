@@ -6,6 +6,10 @@ on:
   schedule:
     - cron: '15 9 3-6 * *'
   workflow_dispatch:
+  # Deneme: bu dallara push edilince sadece rapor üretir, PR açmaz
+  push:
+    branches: ['claude/**']
+    paths: ['scripts/tufe-guncelle.js', 'lib/tufe-hesap.js', '.github/workflows/tufe-guncelle.yml']
 
 permissions:
   contents: write
@@ -29,13 +33,18 @@ jobs:
         env:
           EVDS_API_KEY: ${{ secrets.EVDS_API_KEY }}
           EVDS_TUFE_SERIES: ${{ vars.EVDS_TUFE_SERIES }}
+          EVDS_DEBUG: ${{ github.ref != 'refs/heads/main' && '1' || '' }}
+
+      - name: Raporu özete yaz
+        if: always()
+        run: '[ -f tufe-rapor.md ] && cat tufe-rapor.md >> "$GITHUB_STEP_SUMMARY" || true'
 
       - name: Testleri çalıştır
         if: steps.cek.outputs.degisti == 'true'
         run: npm test
 
       - name: Pull request aç
-        if: steps.cek.outputs.degisti == 'true'
+        if: steps.cek.outputs.degisti == 'true' && github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
           SON_AY: ${{ steps.cek.outputs.son_ay }}

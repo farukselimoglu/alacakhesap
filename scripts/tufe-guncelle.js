@@ -30,6 +30,7 @@ async function evds(yol) {
   const r = await fetch(`${BASE}/${yol}`, { headers: { key: KEY, Accept: 'application/json' } });
   const govde = await r.text();
   if (!r.ok) throw new Error(`EVDS ${r.status}: ${yol}\n${govde.slice(0, 300)}`);
+  if (process.env.EVDS_DEBUG) console.log(`[EVDS] ${yol.replace(/key=[^&]*/, 'key=***')} → ${r.status} ${govde.slice(0, 400)}`);
   try { return JSON.parse(govde); } catch { throw new Error(`EVDS JSON dönmedi: ${yol}\n${govde.slice(0, 300)}`); }
 }
 
